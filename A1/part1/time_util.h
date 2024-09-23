@@ -10,6 +10,7 @@
 // All of the files in this directory and all subdirectories are:
 // Copyright (c) 2022 Bogdan Simion
 // -------------
+#define GNU_SOURCE
 
 #ifndef _TIME_UTIL_H_
 #define _TIME_UTIL_H_
