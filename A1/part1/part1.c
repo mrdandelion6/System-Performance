@@ -51,7 +51,7 @@ void write_to_memory(row_size_t* matrix, int rows, int simd) {
 	// bandwidth for measure_write_bandwidth(). Includes an SIMD 
 	// option as it may write to memory more efficiently.
 
-	if (simd == 1) {
+	if (simd) {
 		__m128i value = _mm_set1_epi32(INT32_MAX);
 		for (int i = 0; i < rows; i++) {
 			for (int j = 0; j < sizeof(row_size_t) / sizeof(__m128i); j++) {
@@ -81,7 +81,7 @@ float measure_write_bandwidth()
 
 	struct timespec  start, end;
     clock_gettime(CLOCK_MONOTONIC, &start);
-	write_to_memory(matrix, rows, 2);
+	write_to_memory(matrix, rows, 0);
 	clock_gettime(CLOCK_MONOTONIC, &end);
 
 	free(matrix);
