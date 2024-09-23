@@ -81,7 +81,7 @@ float measure_write_bandwidth()
 
 	struct timespec  start, end;
     clock_gettime(CLOCK_MONOTONIC, &start);
-	write_memory(matrix, rows, 2);
+	write_to_memory(matrix, rows, 2);
 	clock_gettime(CLOCK_MONOTONIC, &end);
 
 	free(matrix);
