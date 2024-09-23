@@ -29,22 +29,41 @@
 // command to find the l3 cache line size: 
 // getconf LEVEL3_DCACHE_LINESIZE
 
-#define ROW_SIZE 2 * CACHE_LINE_SIZE
-// This will be the number of bytes we read in at a time.
-// This is set to be twice the cache line size because it
-// will ensure that the bytes are retrieved directly from RAM
-// while we iterate through a matrix.
-
 typedef struct {
-	volatile char data[ROW_SIZE];
+	char data[2 * CACHE_LINE_SIZE];
 } row_size_t;
 
 row_size_t* allocate_matrix(int rows)
 {
 	// Allocate a matrix of size rows * ROW_LENGTH.
 	// We purposely make the matrix contiguous.
-	row_size_t* matrix = (row_size_t*)malloc(rows * sizeof(row_size_t));
+	// We use posix_memalign for efficient contiguous memory alignment.
+    row_size_t* matrix;
+    if (posix_memalign((void**)&matrix, CACHE_LINE_SIZE, rows * sizeof(row_size_t)) != 0) {
+        perror("posix_memalign");
+        exit(1);
+    }
 	return matrix;
+}
+
+void write_to_memory(row_size_t* matrix, int rows, int simd) {
+	// This function writes values into matrix to test memory 
+	// bandwidth for measure_write_bandwidth(). Includes an SIMD 
+	// option as it may write to memory more efficiently.
+
+	if (simd == 1) {
+		__m128i value = _mm_set1_epi32(INT32_MAX);
+		for (int i = 0; i < rows; i++) {
+			for (int j = 0; j < sizeof(row_size_t) / sizeof(__m128i); j++) {
+				_mm_store_si128((__m128i*)&matrix[i].data[j * sizeof(__m128i)], value);
+			}
+    	}
+	} else {
+		for (int i = 0; i < rows; i++) {
+			memset(&matrix[i], INT32_MAX, sizeof(row_size_t));
+		}	
+	}
+	
 }
 
 float measure_write_bandwidth()
@@ -62,9 +81,7 @@ float measure_write_bandwidth()
 
 	struct timespec  start, end;
     clock_gettime(CLOCK_MONOTONIC, &start);
-	for (int i = 0; i < rows; i++) {
-		memset(&matrix[i], INT32_MAX, sizeof(row_size_t));
-	}
+	write_memory(matrix, rows, 2);
 	clock_gettime(CLOCK_MONOTONIC, &end);
 
 	free(matrix);
@@ -83,7 +100,7 @@ float measure_write_bandwidth()
 int main(int argc, char *argv[])
 {
 	// Pin the thread to a single CPU to minimize the effects of scheduling
-	// Don't use CPU #0 if possible, as it tends to be busier with servicing interrupts
+	// Don't use CPU #0 if possible, as it tends to be busier with servicing interrupts.
 	srandom(time(NULL));
 	cpu_set_t set;
 	CPU_ZERO(&set);
