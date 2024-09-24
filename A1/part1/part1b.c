@@ -28,10 +28,17 @@ void make_csv() {
     if (file == NULL) {
         perror("Error opening file");
         exit(EXIT_FAILURE);
-    }
+}   
     fprintf(file, "size", "latency");
+    fclose(file);
 }
 
 void determine_cache_hierachy()  {
+    // This function uses various input sizes to determine the cache hierarchy of the system. The
+    // function writes the results to a CSV file. The function will write to an array in 
+    // progressively larger chunks, and measure the time it takes to access each element. 
+
+    // First we warm up the cache by accessing sections of the 1G array in order. We gradually
+    // increase the size of the array we are accessing to determine the cache hierarchy.
 
 }
