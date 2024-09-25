@@ -13,11 +13,26 @@ def filter_outliers(df, column, threshold=3):
 
 def plot_scatter(df):
     filtered_df = filter_outliers(df, "latency (nsec)")
+    
+    # Sort the dataframe by size
+    filtered_df = filtered_df.sort_values("size (bytes)")
+    
+    # Calculate the moving average
+    window_size = len(filtered_df) // 20  # Adjust this value to change the smoothness of the line
+    moving_avg = filtered_df["latency (nsec)"].rolling(window=window_size, center=True).mean()
+    
     plt.figure(figsize=(10, 5))
-    plt.scatter(filtered_df["size (bytes)"], filtered_df["latency (nsec)"], marker='o')
+    
+    # Plot the scatter points
+    plt.scatter(filtered_df["size (bytes)"], filtered_df["latency (nsec)"], marker='o', alpha=0.5, label='Data points')
+    
+    # Plot the moving average line
+    plt.plot(filtered_df["size (bytes)"], moving_avg, color='red', linewidth=2, label='Moving average')
+    
     plt.title("Size vs Latency (Outliers Excluded)")
     plt.xlabel("Size (bytes)")
     plt.ylabel("Latency (nsec)")
+    plt.legend()
     plt.tight_layout()
     plt.savefig(SCATTER)
     plt.close()
