@@ -10,7 +10,7 @@
 
 #define CSV_NAME "gen/cache_hierarchy.csv"
 #define CACHE_LINE_SIZE 64       // Cache line size in bytes (64 bytes is typical)
-#define ROWS 1024 * 1024 / 5    // Number of rows in the matrix
+#define ROWS 1024 * 1024 / 4    // Number of rows in the matrix
 #define MATRIX_SIZE ROWS * CACHE_LINE_SIZE // Size of the matrix in bytes
 
 FILE* make_csv() {

@@ -10,6 +10,7 @@
 // All of the files in this directory and all subdirectories are:
 // Copyright (c) 2022 Bogdan Simion
 // -------------
+#define _GNU_SOURCE
 
 #include <assert.h>
 #include <pthread.h>
