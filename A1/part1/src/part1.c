@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <sys/sysinfo.h>
 #include "part1a.h"
+#include "part1b.h"
 
 int main(int argc, char *argv[])
 {
@@ -35,11 +36,12 @@ int main(int argc, char *argv[])
 	}
 
 	// Part 1, A)
-	float bandwidth = measure_memory_write_bandwidth();
-	printf("bandwidth is %0.2f\n", bandwidth);
+	// float bandwidth = measure_memory_write_bandwidth();
+	// printf("bandwidth is %0.2f\n", bandwidth);
 
 	// Part1, B)
-
+	printf("Starting cache hierarchy experiment\n");
+	measure_cache_hierarchy();
 
 	return 0;
 }

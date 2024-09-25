@@ -4,4 +4,9 @@
 
 
 *.o
+*.out
+*.data
+*.csv
+*.tex
 starter_code/
+!Makefile
