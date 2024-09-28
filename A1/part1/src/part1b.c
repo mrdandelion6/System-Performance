@@ -51,7 +51,6 @@ void measure_cache_hierarchy() {
         double latency = timespec_to_nsec(difftimespec(end, start));
         unsigned long size = (row + 1) * CACHE_LINE_SIZE;
         fprintf(file, "%zu,%f\n", size, latency);
-        printf("Working set size: %zu bytes, Latency: %f nsec\n", size, latency);
     }
 
     for (int i = 0; i < ROWS; i++) {

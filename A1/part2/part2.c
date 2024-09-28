@@ -42,10 +42,9 @@ void compute_averages(course_record *courses, int courses_count)
 	}
 }
 
-
 int main(int argc, char *argv[])
 {
-	course_record *courses;
+	course_record* courses;
 	int courses_count;
 	// Load data from file; "part2data" is the default file path if not specified
 	if (load_data((argc > 1) ? argv[1] : "part2data", &courses, &courses_count) < 0) return 1;

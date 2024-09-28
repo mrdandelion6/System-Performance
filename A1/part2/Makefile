@@ -19,7 +19,8 @@ DATA_OBJ = part2_data.o
 endif
 
 CC = gcc
-CFLAGS += -std=gnu11 -Wall -Werror -g3 -DEMBED_DATA=$(EMBED_DATA) -DNDEBUG
+CFLAGS += -std=gnu11 -Wall -Werror -g3 -DEMBED_DATA=$(EMBED_DATA) -DNDEBUG -pg
+OFLAGS = -pg
 
 all: part2 part2-parallel part2-parallel-opt
 ifneq ($(EMBED_DATA),1)
@@ -34,27 +35,27 @@ part2-parallel: time_util.h
 part2-parallel-opt: time_util.h
 
 part2_data_gen: part2_data_gen.o options.o
-	$(CC) $^ -o $@
+	$(CC) $(OFLAGS) $^ -o $@
 
 # Generate embedded data with default parameters; add arguments to './part2_data_gen' to change parameters
 part2_data.c: part2_data_gen
 	./part2_data_gen
 
 datagen: datagen.o data.o options.o
-	$(CC) $^ -o $@
+	$(CC) $(OFLAGS) $^ -o $@
 
 # Generate file data with default parameters; add arguments to './datagen' to change parameters
 part2data: datagen
 	./datagen
 
 part2: part2.o data.o $(DATA_OBJ)
-	$(CC) $^ -o $@
+	$(CC) $(OFLAGS) $^ -o $@
 
 part2-parallel: part2-parallel.o data.o $(DATA_OBJ)
-	$(CC) $^ -o $@ -pthread
+	$(CC) $^ $(OFLAGS) -o $@ -pthread
 
 part2-parallel-opt: part2-parallel-opt.o data.o $(DATA_OBJ)
-	$(CC) $^ -o $@ -pthread
+	$(CC) $(OFLAGS) $^ -o $@ -pthread
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@

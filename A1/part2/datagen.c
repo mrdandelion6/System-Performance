@@ -25,7 +25,7 @@
 int main(int argc, char *argv[])
 {
 	if (!parse_args(argc, argv)) return 1;
-
+	
 	course_record *courses = (course_record*)calloc(opt_ncourses, sizeof(course_record));
 	if (courses == NULL) {
 		perror("calloc");

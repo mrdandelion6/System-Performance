@@ -1,7 +1,7 @@
 *
 !*/
 !*.*
-
+!Makefile
 
 *.o
 *.out
@@ -9,4 +9,4 @@
 *.csv
 *.tex
 starter_code/
-!Makefile
+gprof_analysis.txt
