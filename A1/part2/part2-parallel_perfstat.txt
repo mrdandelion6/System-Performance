@@ -1,0 +1,15 @@
+$ perf stat -e cache-misses,cache-references,L1-dcache-loads,L1-dcache-load-misses,L1-dcache-stores ./part2-parallel > part2
+-parallel_perfstat.txt
+
+ Performance counter stats for './part2-parallel':
+
+         5,731,352      cache-misses                     #   16.55% of all cache refs         
+        34,626,509      cache-references                                                      
+       179,352,008      L1-dcache-loads                                                       
+        10,170,031      L1-dcache-load-misses            #    5.67% of all L1-dcache accesses 
+        38,498,573      L1-dcache-stores                                                      
+
+       0.101472613 seconds time elapsed
+
+       0.223887000 seconds user
+       0.036981000 seconds sys

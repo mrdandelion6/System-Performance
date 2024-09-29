@@ -15,55 +15,111 @@
 #include <assert.h>
 #include <pthread.h>
 #include <stdio.h>
-
+#include <stdlib.h>
+#include <math.h>
 #include "data.h"
 #include "time_util.h"
 
-//TODO: parallelize the code and optimize performance
+// We have 8 cores on the machine, so we can have up to 8 threads
+// without oversubscribing the machine.
+#define NUM_THREADS 8
+#define CACHE_LINE_SIZE 64
 
+pthread_t threads[NUM_THREADS];
+int threads_made;
 
-// Compute the historic average grade for a given course. Updates the average value in the record
-void compute_average(course_record *course)
+// This struct is passed into both thread functions sum_array and 
+// compute_averages.
+struct thread_args {
+    course_record* courses;
+    int start;
+    int end;
+    double result __attribute__((aligned(CACHE_LINE_SIZE)));
+    char padding[CACHE_LINE_SIZE - sizeof(double)];
+};
+// We're now aligning the thread args to fit nicely within two cache lines
+
+// We store the arguments we will need to pass to each thread.
+struct thread_args* args_array[NUM_THREADS];
+
+void* compute_averages(void* args)
 {
-	assert(course != NULL);
-	assert(course->grades != NULL);
+    struct thread_args* thread_args = (struct thread_args*)args;
+    int start = thread_args->start;
+    int end = thread_args->end;
+    course_record* courses = thread_args->courses;
 
-	course->average = 0.0;
-	for (int i = 0; i < course->grades_count; i++) {
-		course->average += course->grades[i].grade;
-	}
-	course->average /= course->grades_count;
+	// Keep track of the sum locally this time instead of repeatedly writing
+    double local_sum = 0.0;
+
+    for (int i = start; i < end; i++) {
+        assert(&courses[i] != NULL);
+        assert(courses[i].grades != NULL);
+
+        double course_sum = 0.0;
+        int grades_count = courses[i].grades_count;
+        grade_record* grades = courses[i].grades;
+
+        for (int j = 0; j < grades_count; j++) {
+            course_sum += grades[j].grade;
+        }
+        courses[i].average = course_sum / grades_count;
+        local_sum += courses[i].average;
+    }
+
+    thread_args->result = local_sum;
+    pthread_exit(NULL);
 }
 
-// Compute the historic average grades for all the courses
-void compute_averages(course_record *courses, int courses_count)
+void start_parallel(course_record *courses, int courses_count)
 {
-	assert(courses != NULL);
+    assert(courses != NULL);
 
-	for (int i = 0; i < courses_count; i++) {
-		compute_average(&(courses[i]));
-	}
+    int courses_per_thread = (courses_count + NUM_THREADS - 1) / NUM_THREADS;
+
+    for (int i = 0; i < NUM_THREADS; i++) {
+        int start = i * courses_per_thread;
+        int end = (i == NUM_THREADS - 1) ? courses_count : (start + courses_per_thread);
+
+        if (start >= courses_count) break;
+
+        struct thread_args* thread_args = (struct thread_args*)aligned_alloc(CACHE_LINE_SIZE, sizeof(struct thread_args));
+        thread_args->courses = courses;
+        thread_args->start = start;
+        thread_args->end = end;
+        thread_args->result = 0.0;
+        args_array[i] = thread_args;
+        threads_made++;
+        pthread_create(&threads[i], NULL, compute_averages, (void*)thread_args);
+    }
+
+    double total_average = 0.0;
+    for (int i = 0; i < threads_made; i++) {
+        pthread_join(threads[i], NULL);
+        total_average += args_array[i]->result;
+        free(args_array[i]);
+    }
+
+    printf("Total average: %f\n", total_average / courses_count);
 }
-
 
 int main(int argc, char *argv[])
 {
-	course_record *courses;
-	int courses_count;
-	// Load data from file; "part2data" is the default file path if not specified
-	if (load_data((argc > 1) ? argv[1] : "part2data", &courses, &courses_count) < 0) return 1;
+    course_record *courses;
+    int courses_count;
+    if (load_data((argc > 1) ? argv[1] : "part2data", &courses, &courses_count) < 0) return 1;
 
-	struct timespec start, end;
-	clock_gettime(CLOCK_MONOTONIC, &start);
-	compute_averages(courses, courses_count);
-	clock_gettime(CLOCK_MONOTONIC, &end);
+    struct timespec start, end;
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    start_parallel(courses, courses_count);
+    clock_gettime(CLOCK_MONOTONIC, &end);
 
-	for (int i = 0; i < courses_count; i++) {
-		printf("%s: %f\n", courses[i].name, courses[i].average);
-	}
+    for (int i = 0; i < courses_count; i++) {
+        printf("%s: %f\n", courses[i].name, courses[i].average);
+    }
 
-	printf("%f\n", timespec_to_msec(difftimespec(end, start)));
+    printf("Execution time: %f ms\n", timespec_to_msec(difftimespec(end, start)));
 
-	free_data(courses, courses_count);
-	return 0;
+    free_data(courses, courses_count);
+    return 0;
 }

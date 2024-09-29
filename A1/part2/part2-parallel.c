@@ -33,7 +33,6 @@ struct thread_args {
 	int start;
 	int end;
 	int result;
-	int id;
 };
 
 // We store the arguments we will need to pass to each thread.
@@ -79,7 +78,6 @@ void* compute_averages(void* args)
 {
 	int start = ((struct thread_args*)args)->start;
 	int end = ((struct thread_args*)args)->end;
-	int id = ((struct thread_args*)args)->id;
 	course_record* courses = ((struct thread_args*)args)->courses;
 
 	for (int i = start; i < end; i++) {
@@ -120,7 +118,6 @@ void start_parallel(course_record *courses, int courses_count)
 		thread_args->courses = courses;
 		thread_args->start = start;
 		thread_args->end = end;
-		thread_args->id = i;
 		args_array[i] = thread_args;
 		threads_made++;
 		pthread_create(&threads[i], NULL, f, (void*)thread_args);
