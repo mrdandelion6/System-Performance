@@ -8,5 +8,6 @@
 *.data
 *.csv
 *.tex
+tex_info/
 starter_code/
 gprof_analysis.txt
