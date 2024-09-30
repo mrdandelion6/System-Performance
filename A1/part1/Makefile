@@ -30,6 +30,9 @@ all: $(OBJS)
 run: all
 	./my_script.sh
 
+part1: src/part1.o
+	$(CC) $(CFLAGS) $^ -o $@
+
 # Run perf for L1D cache accesses
 perf_l1d_access: all
 	perf stat -e L1-dcache-loads ./$(TARGET)
