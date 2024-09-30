@@ -11,3 +11,5 @@
 tex_info/
 starter_code/
 gprof_analysis.txt
+settings.json
+.vscode/
