@@ -34,9 +34,8 @@ struct thread_args {
     course_record* courses;
     int start;
     int end;
-    double result __attribute__((aligned(CACHE_LINE_SIZE)));
-    char padding[CACHE_LINE_SIZE - sizeof(double)];
-};
+    char padding[CACHE_LINE_SIZE - sizeof(course_record*) - 2 * sizeof(int)];
+} __attribute__((aligned(CACHE_LINE_SIZE)));
 // We're now aligning the thread args to fit nicely within two cache lines
 
 // We store the arguments we will need to pass to each thread.
@@ -50,7 +49,6 @@ void* compute_averages(void* args)
     course_record* courses = thread_args->courses;
 
 	// Keep track of the sum locally this time instead of repeatedly writing
-    double local_sum = 0.0;
 
     for (int i = start; i < end; i++) {
         assert(&courses[i] != NULL);
@@ -64,10 +62,8 @@ void* compute_averages(void* args)
             course_sum += grades[j].grade;
         }
         courses[i].average = course_sum / grades_count;
-        local_sum += courses[i].average;
     }
 
-    thread_args->result = local_sum;
     pthread_exit(NULL);
 }
 
@@ -87,20 +83,15 @@ void start_parallel(course_record *courses, int courses_count)
         thread_args->courses = courses;
         thread_args->start = start;
         thread_args->end = end;
-        thread_args->result = 0.0;
         args_array[i] = thread_args;
         threads_made++;
         pthread_create(&threads[i], NULL, compute_averages, (void*)thread_args);
     }
 
-    double total_average = 0.0;
     for (int i = 0; i < threads_made; i++) {
         pthread_join(threads[i], NULL);
-        total_average += args_array[i]->result;
         free(args_array[i]);
     }
-
-    printf("Total average: %f\n", total_average / courses_count);
 }
 
 int main(int argc, char *argv[])
@@ -118,7 +109,7 @@ int main(int argc, char *argv[])
         printf("%s: %f\n", courses[i].name, courses[i].average);
     }
 
-    printf("Execution time: %f ms\n", timespec_to_msec(difftimespec(end, start)));
+	printf("%f\n", timespec_to_msec(difftimespec(end, start)));
 
     free_data(courses, courses_count);
     return 0;

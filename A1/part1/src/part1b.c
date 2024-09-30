@@ -14,17 +14,21 @@
 #define MATRIX_SIZE ROWS * CACHE_LINE_SIZE // Size of the matrix in bytes
 
 FILE* make_csv() {
+    printf("Attempting to make CSV file\n");
     FILE* file = fopen(CSV_NAME, "w");
     if (file == NULL) {
         perror("Error opening file");
         exit(EXIT_FAILURE);
     }
     fprintf(file, "size (bytes),latency (nsec)\n");
+    printf("Made CSV file at %s\n", CSV_NAME);
     return file;
 }
 
 void measure_cache_hierarchy() {
-    struct timespec start, end;
+    struct timespec start, end, total_s, total_e;
+
+    clock_gettime(CLOCK_MONOTONIC, &total_s);
     FILE* file = make_csv();
 
     volatile char** matrix = (volatile char**)malloc(ROWS * sizeof(char*));
@@ -59,4 +63,8 @@ void measure_cache_hierarchy() {
     free(matrix);
 
     fclose(file);
+    clock_gettime(CLOCK_MONOTONIC, &total_e);
+
+    double total_time = timespec_to_sec(difftimespec(total_e, total_s));
+    printf("Experiment ended with total time: %.2f\n", total_time);
 }

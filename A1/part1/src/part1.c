@@ -36,8 +36,9 @@ int main(int argc, char *argv[])
 	}
 
 	// Part 1, A)
+	// printf("Starting bandwidth stress experiment\n");
 	// float bandwidth = measure_memory_write_bandwidth();
-	// printf("bandwidth is %0.2f\n", bandwidth);
+	// printf("Bandwidth is %0.2f\n", bandwidth);
 
 	// Part1, B)
 	printf("Starting cache hierarchy experiment\n");
